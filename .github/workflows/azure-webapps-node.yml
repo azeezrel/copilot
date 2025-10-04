@@ -1,4 +1,4 @@
-name: Build and Deploy Node.js App to Azure Web App
+name: Build and Deploy Vite App to Azure Web App
 
 on:
   push:
@@ -6,9 +6,9 @@ on:
   workflow_dispatch:
 
 env:
-  AZURE_WEBAPP_NAME: your-app-name             # ⬅️ Replace with your Azure Web App name
+  AZURE_WEBAPP_NAME: your-app-name           # 🔁 Replace with your Azure Web App name
   NODE_VERSION: '20.x'
-  BUILD_OUTPUT: 'dist'                         # ⬅️ Replace with your actual build folder (e.g., build, out, .next)
+  BUILD_OUTPUT: 'dist'
 
 permissions:
   contents: read
@@ -18,7 +18,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -29,13 +30,13 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Build the app
+      - name: Build the app with Vite
         run: npm run build
 
-      - name: Upload build output as artifact
+      - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: build-artifact
+          name: vite-build
           path: ${{ env.BUILD_OUTPUT }}
 
   deploy:
@@ -43,17 +44,17 @@ jobs:
     needs: build
 
     environment:
-      name: 'Development'
+      name: 'Production'  # or 'Development'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
 
     steps:
       - name: Download build artifact
         uses: actions/download-artifact@v4
         with:
-          name: build-artifact
+          name: vite-build
           path: ${{ env.BUILD_OUTPUT }}
 
-      - name: Deploy to Azure WebApp
+      - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v2
         with:
